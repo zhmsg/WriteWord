@@ -1,1 +1,11 @@
+G:\WriteWord\WriteWord\obj\Debug\Interop.Office.dll
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.csproj.ResolveComReference.cache
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.CreateReport.resources
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.Properties.Resources.resources
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.csproj.GenerateResource.Cache
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.csprojResolveAssemblyReference.cache
 G:\WriteWord\WriteWord\bin\Debug\WriteWord.exe.config
+G:\WriteWord\WriteWord\bin\Debug\WriteWord.exe
+G:\WriteWord\WriteWord\bin\Debug\WriteWord.pdb
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.exe
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.pdb
