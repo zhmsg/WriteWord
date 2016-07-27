@@ -96,6 +96,14 @@ namespace WriteWord
         private void WriteContents(ReportInfo ri)
         {
             Console.WriteLine("开始Write Contents");
+
+            #region 设置页面布局
+            wordDoc.Sections.Last.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
+            wordDoc.Sections.Last.PageSetup.TopMargin = wordApp.CentimetersToPoints(1f);
+            wordDoc.Sections.Last.PageSetup.BottomMargin = wordApp.CentimetersToPoints(1f);
+            wordDoc.Sections.Last.PageSetup.HeaderDistance = 20.5f; //页眉位置
+            #endregion
+
             int LeftIndent = 6;
             Range r = wordDoc.Paragraphs.Last.Range;
             r.Text = "目录\n";
@@ -128,7 +136,7 @@ namespace WriteWord
                 wordApp.Selection.ParagraphFormat.LineUnitBefore = 3;
                 wordApp.Selection.ParagraphFormat.CharacterUnitLeftIndent = LeftIndent;
                 wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
-                wordApp.Selection.ParagraphFormat.LineSpacing = 18f;
+                wordApp.Selection.ParagraphFormat.LineSpacing = 19f;
 
                 r = wordDoc.Paragraphs.Last.Range;
                 r.Text = ri.PartInfo[i].ChTitle + "\n";
@@ -136,7 +144,7 @@ namespace WriteWord
                 wordApp.Selection.ParagraphFormat.Reset();
                 wordApp.Selection.ParagraphFormat.CharacterUnitLeftIndent = LeftIndent;
                 wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
-                wordApp.Selection.ParagraphFormat.LineSpacing = 18f;
+                wordApp.Selection.ParagraphFormat.LineSpacing = 19f;
 
                 r = wordDoc.Paragraphs.Last.Range;
                 r.Text = ri.PartInfo[i].EnTitle + "\n";
@@ -147,37 +155,45 @@ namespace WriteWord
             wordApp.Selection.PageSetup.TextColumns.SetCount(2);
             wordApp.Selection.PageSetup.TextColumns.Spacing = 2f;
 
-            #region 设置页面布局
-            wordDoc.Sections.Last.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
-            wordDoc.Sections.Last.PageSetup.TopMargin = wordApp.CentimetersToPoints(1f);
-            wordDoc.Sections.Last.PageSetup.BottomMargin = wordApp.CentimetersToPoints(1f);
-            wordDoc.Sections.Last.PageSetup.HeaderDistance = 20.5f; //页眉位置
-            #endregion
 
+            
             object bs = WdBreakType.wdSectionBreakNextPage;
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
-        }
 
-        private void WritePartTitle(ReportPartInfo PI)
-        {
-            Console.WriteLine("开始Write Part Title " + PI.ChTitle);
-            Range r = wordDoc.Paragraphs.Last.Range;
-            r.Text = PI.ChTitle + "\n";
-            r.Font.Size = 28.8f;
-            r.Font.Name = FontName;
+            r = wordDoc.Paragraphs.Last.Range;
             r.Select();
             wordApp.Selection.ParagraphFormat.Reset();
             wordApp.Selection.PageSetup.TextColumns.SetCount(1);
-            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
-            wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
-            wordApp.Selection.ParagraphFormat.LineSpacing = 43.4f;
-            r = wordDoc.Paragraphs.Last.Range;
-            r.Text = PI.EnTitle + "\n";
-            r.Font.Size = 11.52f;
-            r.Select();
-            wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
-            wordApp.Selection.ParagraphFormat.LineSpacing = 26.1f;
+        }
 
+        private void WritePartTitle(ReportPartInfo PI, bool InsertTitle = true)
+        {
+            Console.WriteLine("开始Write Part Title " + PI.ChTitle);
+            Range r;
+            if (InsertTitle == true)
+            {
+                r = wordDoc.Paragraphs.Last.Range;
+                r.Text = PI.ChTitle + "\n";
+                r.Font.Size = 28.5f;
+                r.Font.Bold = 0;
+                r.Font.Name = FontName;
+                r.Select();
+
+                wordApp.Selection.ParagraphFormat.Reset();
+                wordApp.Selection.PageSetup.TextColumns.SetCount(1);
+                wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevel1;
+                wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+                wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
+                wordApp.Selection.ParagraphFormat.LineSpacing = 43.4f;
+
+                r = wordDoc.Paragraphs.Last.Range;
+                r.Text = PI.EnTitle + "\n";
+                r.Font.Size = 11.5f;
+                r.Select();
+                wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevelBodyText;
+                wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
+                wordApp.Selection.ParagraphFormat.LineSpacing = 26.1f;
+            }
             #region 设置页面布局
             wordDoc.Sections.Last.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
             wordDoc.Sections.Last.PageSetup.TopMargin = wordApp.CentimetersToPoints(1f);
@@ -192,8 +208,6 @@ namespace WriteWord
             {
                 while (true)
                     wordApp.ActiveWindow.ActivePane.View.NextHeaderFooter();
-
-
             }
             catch (Exception ex)
             {
@@ -216,6 +230,27 @@ namespace WriteWord
             r.InlineShapes.AddPicture(HeaderPicPath);
             wordApp.ActiveWindow.ActivePane.View.SeekView = WdSeekView.wdSeekMainDocument;//退出页眉设置
             #endregion
+
+        }
+
+        private void WriteHealthSurvey(ReportSurvey rs)
+        {
+            Console.WriteLine("开始写体检人健康调查情况汇总");
+
+            Range r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "体检人健康调查情况汇总\n";
+            r.Font.Size = 20f;
+            r.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevel2;
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+
+            float LeftIndent = 5;
+            WriteThirdTitle("个人信息", true, LeftIndent);
+            WriteNormalParagraph(rs.PersonalInfo, LeftIndent);
+            WriteThirdTitle("疾病家族史", true, LeftIndent);
+            WriteThirdTitle("生活习惯", true, LeftIndent);
+            WriteThirdTitle("疾病既往史", true, LeftIndent);
 
         }
 
@@ -429,6 +464,7 @@ namespace WriteWord
             r.Font.Size = 13.44f;
             r.Select();
             wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevel2;
             wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
             wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceDouble;
             r.Start = r.End;
@@ -445,23 +481,20 @@ namespace WriteWord
             wordDoc.Content.InsertAfter("\n");
         }
 
-        private void WriteThirdTitle(string TitleName, bool InsertP=true)
+        private void WriteThirdTitle(string TitleName, bool InsertP=true, float LeftIndent = 0)
         {
             Range r;
-            //if (InsertP == true)
-            //{
-            //    r = wordDoc.Paragraphs.Last.Range;
-            //    r.Text = "\n";
-            //    r.Font.Size = 7f;
-            //}
             r = wordDoc.Paragraphs.Last.Range;
             r.Text = TitleName + "\n";
             r.Font.Size = 11.5f;
             r.Select();
             wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevel3;
             wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpace1pt5;
             if (InsertP == true)
                 wordApp.Selection.ParagraphFormat.LineUnitBefore = 1.5f;
+            if(LeftIndent > 0)
+                wordApp.Selection.ParagraphFormat.CharacterUnitLeftIndent = LeftIndent;
             r = wordDoc.Paragraphs.Last.Range;
             r.Select();
             wordApp.Selection.ParagraphFormat.Reset();
@@ -492,7 +525,7 @@ namespace WriteWord
             return t;
         }
 
-        private string CalcFreq(string Freq)
+        private string CalcFreq2(string Freq)
         {
             Freq = Freq.Trim();
             if (Freq != "")
@@ -511,14 +544,38 @@ namespace WriteWord
             return Freq;
         }
 
-        private void WriteNormalParagraph(string Content)
+        public string CalcFreq(string GeneType, string Freq)
+        {
+            Freq = Freq.Trim();
+            if (Freq != "")
+            {
+                float FFreq = float.Parse(Freq);
+                string []GS = GeneType.Split('/');
+                if (GS[0] == GS[1])
+                {
+                    FFreq = FFreq * FFreq * 100;
+                }
+                else
+                {
+                    FFreq = (1 - FFreq) * FFreq * 200;
+                }
+                Freq = String.Format("{0:F}%", FFreq);
+            }
+
+            return Freq;
+        }
+
+        private void WriteNormalParagraph(string Content, float LeftIndent = 0)
         {
             Range r = wordDoc.Paragraphs.Last.Range;
             r.Text = Content.Replace("<br>", "\n").Trim('\n') + "\n";
             r.Font.Size = 9.6f;
             r.Select();
             wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
+            wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevelBodyText;
             wordApp.Selection.ParagraphFormat.LineSpacing = 19.2f;
+            if (LeftIndent > 0)
+                wordApp.Selection.ParagraphFormat.CharacterUnitLeftIndent = LeftIndent;
         }
 
         private void WriteCancerRiskInfo(ReportTestItem rti)
@@ -541,7 +598,7 @@ namespace WriteWord
                 SampleVariantCount = 10;
             string[] title = { "序号", "位点编号", "基因名称", "基因型", "风险等级", "人群频率" };
             Table t = CreateTable(SampleVariantCount + 1, title);
-            float[] ColWid = { 1.97f, 6f, 5f, 3.28f, 4.13f, 2.54f };
+            float[] ColWid = { 1.5f, 5f, 7f, 2f, 3f, 2.3f };
             Range r;
             for (int i = 1; i <= 6; i++)
             {
@@ -591,7 +648,7 @@ namespace WriteWord
                 InShape.Height = wordApp.CentimetersToPoints(RiskPicHeight);
                 InShape.Width = wordApp.CentimetersToPoints(RiskPicWidth);
 
-                Freq = CalcFreq(rti.patient_sample_variant[i][5]);
+                Freq = CalcFreq(rti.patient_sample_variant[i][2], rti.patient_sample_variant[i][5]);
                 r = t.Cell(i + 2, 6).Range;
                 r.Text = Freq;
             }
@@ -685,7 +742,7 @@ namespace WriteWord
                 SampleVariantCount = 10;
             string[] title = { "序号", "位点编号", "基因名称", "基因型", "风险等级", "人群频率" };
             Table t = CreateTable(SampleVariantCount + 1, title);
-            float[] ColWid = { 1.97f, 6f, 5f, 3.28f, 4.13f, 2.54f };
+            float[] ColWid = { 1.5f, 5f, 7f, 2f, 3f, 2.3f };
             Range r;
             for (int i = 1; i <= 6; i++)
             {
@@ -736,7 +793,7 @@ namespace WriteWord
                 InShape.Width = wordApp.CentimetersToPoints(RiskPicWidth);
 
                 r = t.Cell(i + 2, 6).Range;
-                Freq = CalcFreq(rti.patient_sample_variant[i][5]);
+                Freq = CalcFreq(rti.patient_sample_variant[i][2], rti.patient_sample_variant[i][5]);
                 r.Text = Freq;
             }
             #endregion
@@ -861,7 +918,7 @@ namespace WriteWord
                     InShape.Width = wordApp.CentimetersToPoints(RiskPicWidth);
 
                     r = T_Valid.Cell(i + 2, 5).Range;
-                    Freq = CalcFreq( rtm.patient_sample_variant[0][i][5]);
+                    Freq = CalcFreq(rtm.patient_sample_variant[0][i][2], rtm.patient_sample_variant[0][i][5]);
                     r.Text = Freq;
                 }
             }
@@ -908,7 +965,7 @@ namespace WriteWord
                     InShape.Width = wordApp.CentimetersToPoints(RiskPicWidth);
 
                     r = T_Poison.Cell(i + 2, 5).Range;
-                    Freq = CalcFreq(PoisonList[i][5]);
+                    Freq = CalcFreq(PoisonList[i][2], PoisonList[i][5]);
                     r.Text = Freq;
                 }
             }
@@ -986,7 +1043,7 @@ namespace WriteWord
                     InShape.Width = wordApp.CentimetersToPoints(RiskPicWidth);
 
                     r = T_Poison.Cell(i + 2, 5).Range;
-                    Freq = CalcFreq(VariantList[i][5]);
+                    Freq = CalcFreq(VariantList[i][2], VariantList[i][5]);
                     r.Text = Freq;
                 }
             }
@@ -1079,9 +1136,18 @@ namespace WriteWord
         public void WriteReport(ReportInfo ri)
         {
             Console.WriteLine("开始写" + ri.survey_result.name + "的报告");
-            WriteSpeech(ri.survey_result.name);
-            WriteContents(ri);
-            WriteGeneticTestOverview(ri);
+            //WriteSpeech(ri.survey_result.name);
+
+            //WriteContents(ri);
+
+            //WritePartTitle(ri.PartInfo[0], false);
+            //WriteHealthSurvey(ri.survey_result);
+
+            object bs = WdBreakType.wdSectionBreakNextPage;
+            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+
+            //WriteGeneticTestOverview(ri);
+
             WritePartTitle(ri.PartInfo[3]);
             for (int i = 0; i < ri.tomour_list.Count; i++)
             {
@@ -1092,7 +1158,6 @@ namespace WriteWord
                     //break;
                 }
             }
-            object bs = WdBreakType.wdSectionBreakNextPage;
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
             WritePartTitle(ri.PartInfo[4]);
             for (int i = 0; i < ri.chronic_disease_list.Count; i++)

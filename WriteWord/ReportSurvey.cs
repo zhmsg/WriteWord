@@ -15,6 +15,14 @@ namespace WriteWord
             get { return _birth; }
             set { _birth = value; }
         }
+        public string Birth
+        {
+            get
+            {
+                string b = _birth;
+                return b;
+            }
+        }
         string _name;
 
         public string name
@@ -43,6 +51,16 @@ namespace WriteWord
             get { return _id; }
             set { _id = value; }
         }
+        public string ID
+        {
+            get
+            {
+                if (_id == null)
+                    return "******************";
+                string s = _id.Substring(0, 5) + "****" + _id.Substring(9, 5) + "****";
+                return s;
+            }
+        }
         int _sex;
 
         public int sex
@@ -56,7 +74,7 @@ namespace WriteWord
                     return "男";
                 else if (_sex == 2)
                     return "女";
-                return "";
+                return "未知";
             }
         }
         string _weight;
@@ -65,6 +83,20 @@ namespace WriteWord
         {
             get { return _weight; }
             set { _weight = value; }
+        }
+        public string PersonalInfo
+        {
+            get
+            {
+                string info = "";
+                info += "姓名：" + name;
+                info += "       性别：" + Sex;
+                info += "       出生日期：" + Birth;
+                info += "       身高：" + height + "cm";
+                info += "       体重：" + weight + "kg";
+                info += "\n身份证号：" + ID;
+                return info;
+            }
         }
     }
 }
