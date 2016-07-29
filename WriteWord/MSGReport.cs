@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace WriteWord
 {
@@ -20,6 +19,10 @@ namespace WriteWord
         string YellowPicPath;
         float RiskPicWidth = 1.6f;
         float RiskPicHeight = 0.4f;
+        float PageHeight = 26f;
+        float PageLeftMargin = 1.21f;
+        float PageRightMargin = 1.21f;
+        object bs = WdBreakType.wdSectionBreakNextPage;
         public MSGReport()
         {
             Console.WriteLine("初始化MSGReport");
@@ -27,15 +30,131 @@ namespace WriteWord
             Nothing = Missing.Value;
             wordDoc = wordApp.Documents.Add(ref Nothing, ref Nothing, ref Nothing, ref Nothing); 
             wordDoc.PageSetup.PaperSize = WdPaperSize.wdPaperA4;//设置纸张样式
-            wordDoc.PageSetup.PageWidth = wordApp.CentimetersToPoints(26);
-            wordDoc.PageSetup.PageHeight = wordApp.CentimetersToPoints(26);
-            wordDoc.PageSetup.TopMargin = wordApp.CentimetersToPoints(0.68f);
-            wordDoc.PageSetup.BottomMargin = wordApp.CentimetersToPoints(0.68f);
-            wordDoc.PageSetup.LeftMargin = wordApp.CentimetersToPoints(1.21f);
-            wordDoc.PageSetup.RightMargin = wordApp.CentimetersToPoints(1.21f);
+            wordDoc.PageSetup.PageWidth = wordApp.CentimetersToPoints(PageHeight);
+            wordDoc.PageSetup.PageHeight = wordApp.CentimetersToPoints(PageHeight);
+            wordDoc.PageSetup.TopMargin = wordApp.CentimetersToPoints(1f);
+            wordDoc.PageSetup.BottomMargin = wordApp.CentimetersToPoints(1f);
+            wordDoc.PageSetup.LeftMargin = wordApp.CentimetersToPoints(PageLeftMargin);
+            wordDoc.PageSetup.RightMargin = wordApp.CentimetersToPoints(PageRightMargin);
+            wordDoc.PageSetup.HeaderDistance = wordApp.CentimetersToPoints(0.72f);
             YellowPicPath = Environment.CurrentDirectory + "\\yellow.png";
             RedPicPath = Environment.CurrentDirectory + "\\red.png";
             GreenPicPath = Environment.CurrentDirectory + "\\green.png";
+        }
+
+        private void SetHeader(ReportPartInfo PI = null)
+        {
+            wordDoc.Sections.Last.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
+            wordApp.ActiveWindow.View.Type = WdViewType.wdOutlineView;//视图样式
+            wordApp.ActiveWindow.View.SeekView = WdSeekView.wdSeekPrimaryHeader;//进入页眉设置，其中页眉边距在页面设置中已完成
+            try
+            {
+                while (true)
+                    wordApp.ActiveWindow.ActivePane.View.NextHeaderFooter();
+            }
+            catch (Exception ex)
+            {
+            }
+            wordApp.ActiveWindow.ActivePane.Selection.ParagraphFormat.Borders[WdBorderType.wdBorderBottom].LineStyle = WdLineStyle.wdLineStyleNone;//去掉页眉的横线
+
+            wordApp.ActiveWindow.ActivePane.Selection.Borders[WdBorderType.wdBorderBottom].Visible = false;
+            wordApp.Selection.WholeStory();
+            wordApp.Selection.Range.Text = "";
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+            wordApp.Selection.WholeStory();
+            Range r = wordApp.Selection.Range;
+            r.Text = "";
+            if (PI != null)
+            {
+                r.Text = PI.PartStr + PI.ChTitle + "  " + PI.EnTitle + "\n";
+                r.Font.Size = 7.68f;
+                r.Font.Name = FontName;
+                r.Start = r.Start + PI.PartStr.Length + PI.ChTitle.Length + 2;
+                r.Font.Name = "Agency FB";
+                r.Start = r.End;
+
+                string HeaderPicPath = Environment.CurrentDirectory + "\\header.png";
+                r.InlineShapes.AddPicture(HeaderPicPath);
+            }
+            wordApp.ActiveWindow.ActivePane.View.SeekView = WdSeekView.wdSeekMainDocument;//退出页眉设置
+            
+        }
+
+        private void WriteCover(string Name, string No)
+        {
+            #region 设置页眉
+            SetHeader();
+            #endregion
+
+            Range r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "晶云基因体检报告";
+            r.Font.Size = 29f;
+            r.Font.Name = FontName;
+            r.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 7;
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+            wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
+            wordApp.Selection.ParagraphFormat.LineSpacing = 19.2f;
+
+            r.Start = r.End;
+            string LogoPicPath = Environment.CurrentDirectory + "\\logo.png";
+            float LogoPicWidth = 3.15f;
+            InlineShape LogoInShape = r.InlineShapes.AddPicture(LogoPicPath);
+            LogoInShape.Height = wordApp.CentimetersToPoints(1.96f);
+            LogoInShape.Width = wordApp.CentimetersToPoints(LogoPicWidth);
+
+
+            Shape LogoShape = LogoInShape.ConvertToShape();
+            LogoShape.WrapFormat.Type = WdWrapType.wdWrapTight;// 紧密型
+            LogoShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionRightMarginArea;
+            LogoShape.Left = wordApp.CentimetersToPoints(PageRightMargin - (LogoPicWidth + PageHeight) / 2);
+            LogoShape.RelativeVerticalPosition = WdRelativeVerticalPosition.wdRelativeVerticalPositionParagraph;
+            LogoShape.Top = wordApp.CentimetersToPoints(1f);
+            wordDoc.Content.InsertAfter("\n");
+
+            r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "解码基因 预知未来\n";
+            r.Font.Size = 14f;
+            r.Select();
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 1;
+
+            r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "姓名：" + Name;
+            r.Font.Size = 12f;
+            r.Select();
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 2.4f;
+            wordApp.Selection.ParagraphFormat.CharacterUnitLeftIndent = 28;
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+
+            r.Start = r.End;
+            string CoverPicPath = Environment.CurrentDirectory + "\\cover.png"; ;
+            InlineShape BackCoverInShape = r.InlineShapes.AddPicture(CoverPicPath);
+            BackCoverInShape.Height = wordApp.CentimetersToPoints(10.23f);
+            BackCoverInShape.Width = wordApp.CentimetersToPoints(PageHeight);
+
+
+            Shape OneShape = BackCoverInShape.ConvertToShape();
+            OneShape.WrapFormat.Type = WdWrapType.wdWrapTight;// 紧密型
+            OneShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionRightMarginArea;
+            OneShape.Left = wordApp.CentimetersToPoints(PageLeftMargin - PageHeight);
+            OneShape.RelativeVerticalPosition = WdRelativeVerticalPosition.wdRelativeVerticalPositionPage;
+            OneShape.Top = wordApp.CentimetersToPoints(8.86f);
+            wordDoc.Content.InsertAfter("\n");
+
+            r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "编号：" + No + "\n";
+            r.Select();
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 0;
+            wordApp.Selection.ParagraphFormat.SpaceBefore = 0;
+
+            r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "北京中科晶云科技有限公司\n";
+            r.Select();
+            wordApp.Selection.ParagraphFormat.CharacterUnitLeftIndent = 0;
+            wordApp.Selection.ParagraphFormat.LeftIndent = 0f;
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 4;
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
         }
 
         private void WriteSpeech(string name)
@@ -43,11 +162,17 @@ namespace WriteWord
             Console.WriteLine("开始Write Speech");
 
             #region 插入左边图片
+            wordDoc.Paragraphs.Last.Range.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
             string SpeechPicPath = Environment.CurrentDirectory + "\\speech.jpg";
             InlineShape InShapeSpeech = wordDoc.Paragraphs.Last.Range.InlineShapes.AddPicture(SpeechPicPath); 
             Shape ShapeSpeech = InShapeSpeech.ConvertToShape();
-            ShapeSpeech.WrapFormat.Type = WdWrapType.wdWrapSquare;// 四周型
             ShapeSpeech.WrapFormat.Side = WdWrapSideType.wdWrapRight; // 设置图片 文字环绕 -> 自动换行 -> 只在右侧
+            ShapeSpeech.WrapFormat.Type = WdWrapType.wdWrapTight;// 紧密型
+            ShapeSpeech.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionRightMarginArea;
+            ShapeSpeech.Left = wordApp.CentimetersToPoints(2 - PageHeight);
+            ShapeSpeech.RelativeVerticalPosition = WdRelativeVerticalPosition.wdRelativeVerticalPositionPage;
+            ShapeSpeech.Top = wordApp.CentimetersToPoints(0.8f);
             #endregion
 
             wordDoc.Content.InsertAfter("\n");
@@ -56,6 +181,7 @@ namespace WriteWord
             r.Font.Size = 20f;
             r.Font.Name = FontName;
             r.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
             wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
             wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceDouble;
             wordApp.Selection.ParagraphFormat.LeftIndent = wordApp.CentimetersToPoints(12);
@@ -76,20 +202,9 @@ namespace WriteWord
             wordApp.Selection.ParagraphFormat.LineSpacing = 20f;
 
             #region 设置页眉
-            wordApp.ActiveWindow.View.Type = WdViewType.wdOutlineView;//视图样式
-            wordApp.ActiveWindow.View.SeekView = WdSeekView.wdSeekPrimaryHeader;//进入页眉设置，其中页眉边距在页面设置中已完成
-
-            wordApp.ActiveWindow.ActivePane.Selection.ParagraphFormat.Borders[WdBorderType.wdBorderBottom].LineStyle = WdLineStyle.wdLineStyleNone;//去掉页眉的横线
-
-            wordApp.ActiveWindow.ActivePane.Selection.Borders[WdBorderType.wdBorderBottom].Visible = false;
-            wordApp.ActiveWindow.ActivePane.View.SeekView = WdSeekView.wdSeekMainDocument;//退出页眉设置
-            wordDoc.Sections.Last.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
-            wordDoc.Sections.Last.PageSetup.HeaderDistance = wordApp.CentimetersToPoints(0.2f);//页眉位置
-            wordDoc.Sections.Last.PageSetup.TopMargin = wordApp.CentimetersToPoints(0.2f);
-            
+            SetHeader();
             #endregion
 
-            object bs = WdBreakType.wdSectionBreakNextPage;
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
         }
 
@@ -99,9 +214,6 @@ namespace WriteWord
 
             #region 设置页面布局
             wordDoc.Sections.Last.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
-            wordDoc.Sections.Last.PageSetup.TopMargin = wordApp.CentimetersToPoints(1f);
-            wordDoc.Sections.Last.PageSetup.BottomMargin = wordApp.CentimetersToPoints(1f);
-            wordDoc.Sections.Last.PageSetup.HeaderDistance = 20.5f; //页眉位置
             #endregion
 
             int LeftIndent = 6;
@@ -155,9 +267,6 @@ namespace WriteWord
             wordApp.Selection.PageSetup.TextColumns.SetCount(2);
             wordApp.Selection.PageSetup.TextColumns.Spacing = 2f;
 
-
-            
-            object bs = WdBreakType.wdSectionBreakNextPage;
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
 
             r = wordDoc.Paragraphs.Last.Range;
@@ -166,7 +275,7 @@ namespace WriteWord
             wordApp.Selection.PageSetup.TextColumns.SetCount(1);
         }
 
-        private void WritePartTitle(ReportPartInfo PI, bool InsertTitle = true)
+        private void WritePartTitle(ReportPartInfo PI, bool InsertTitle = true, float LineBefore = 0)
         {
             Console.WriteLine("开始Write Part Title " + PI.ChTitle);
             Range r;
@@ -185,50 +294,21 @@ namespace WriteWord
                 wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
                 wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
                 wordApp.Selection.ParagraphFormat.LineSpacing = 43.4f;
+                if (LineBefore > 0)
+                    wordApp.Selection.ParagraphFormat.LineUnitBefore = LineBefore;
 
                 r = wordDoc.Paragraphs.Last.Range;
                 r.Text = PI.EnTitle + "\n";
                 r.Font.Size = 11.5f;
                 r.Select();
+                wordApp.Selection.ParagraphFormat.LineUnitBefore = 0;
+                wordApp.Selection.ParagraphFormat.SpaceBefore = 0;
                 wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevelBodyText;
                 wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
                 wordApp.Selection.ParagraphFormat.LineSpacing = 26.1f;
             }
-            #region 设置页面布局
-            wordDoc.Sections.Last.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
-            wordDoc.Sections.Last.PageSetup.TopMargin = wordApp.CentimetersToPoints(1f);
-            wordDoc.Sections.Last.PageSetup.BottomMargin = wordApp.CentimetersToPoints(1f);
-            wordDoc.Sections.Last.PageSetup.HeaderDistance = 20.5f;//页眉位置
-            #endregion
-
             #region 设置页眉
-            wordApp.ActiveWindow.View.Type = WdViewType.wdOutlineView;//视图样式
-            wordApp.ActiveWindow.View.SeekView = WdSeekView.wdSeekPrimaryHeader;//进入页眉设置，其中页眉边距在页面设置中已完成
-            try
-            {
-                while (true)
-                    wordApp.ActiveWindow.ActivePane.View.NextHeaderFooter();
-            }
-            catch (Exception ex)
-            {
-            }
-            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
-            wordApp.ActiveWindow.ActivePane.Selection.ParagraphFormat.Borders[WdBorderType.wdBorderBottom].LineStyle = WdLineStyle.wdLineStyleNone;//去掉页眉的横线
-
-            wordApp.ActiveWindow.ActivePane.Selection.Borders[WdBorderType.wdBorderBottom].Visible = false;
-            wordApp.Selection.WholeStory();
-            wordApp.Selection.Range.Text = "";
-            r = wordApp.Selection.Paragraphs.Last.Range;
-            r.Text = PI.PartStr + PI.ChTitle + "  " + PI.EnTitle + "\n";
-            r.Font.Size = 7.68f;
-            r.Font.Name = "造字工房悦黑体验版常规体";
-            r.Start = r.Start + PI.PartStr.Length + PI.ChTitle.Length + 2;
-            r.Font.Name = "Agency FB";
-            r.Start = r.End;
-
-            string HeaderPicPath = Environment.CurrentDirectory + "\\header.png";
-            r.InlineShapes.AddPicture(HeaderPicPath);
-            wordApp.ActiveWindow.ActivePane.View.SeekView = WdSeekView.wdSeekMainDocument;//退出页眉设置
+            SetHeader(PI);
             #endregion
 
         }
@@ -248,10 +328,131 @@ namespace WriteWord
             float LeftIndent = 5;
             WriteThirdTitle("个人信息", true, LeftIndent);
             WriteNormalParagraph(rs.PersonalInfo, LeftIndent);
-            WriteThirdTitle("疾病家族史", true, LeftIndent);
-            WriteThirdTitle("生活习惯", true, LeftIndent);
-            WriteThirdTitle("疾病既往史", true, LeftIndent);
 
+            WriteThirdTitle("疾病家族史", true, LeftIndent);
+            foreach (string info in rs.family_history)
+            {
+                WriteNormalParagraph(info, LeftIndent);
+            }
+
+            WriteThirdTitle("生活习惯", true, LeftIndent);
+            foreach (string info in rs.habits)
+            {
+                WriteNormalParagraph(info, LeftIndent);
+            }
+
+            WriteThirdTitle("疾病既往史", true, LeftIndent);
+            foreach (string info in rs.past_medical_history)
+            {
+                WriteNormalParagraph(info, LeftIndent);
+            }
+
+            r = wordDoc.Paragraphs.Last.Range;
+            r.InsertBreak();
+            r.Start = r.Start - 1;
+            r.Select();
+            SetNormalParagraphFormat(LeftIndent);
+        }
+
+        private void AddTightShape(Range r, string PicPath, float Left = 0, float Top = 0)
+        {
+            InlineShape InShape = r.InlineShapes.AddPicture(PicPath);
+            InShape.Height = wordApp.CentimetersToPoints(RiskPicHeight);
+            InShape.Width = wordApp.CentimetersToPoints(RiskPicWidth);
+
+            Shape OneShape = InShape.ConvertToShape();
+            OneShape.WrapFormat.Type = WdWrapType.wdWrapTight;// 紧密型
+
+            if (Top != 0)
+            {
+                OneShape.RelativeVerticalPosition = WdRelativeVerticalPosition.wdRelativeVerticalPositionParagraph;
+                OneShape.Top = wordApp.CentimetersToPoints(Top);
+            }
+            if (Left != 0)
+            {
+                OneShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionRightMarginArea;
+                OneShape.Left = wordApp.CentimetersToPoints(Left);
+            }
+        }
+
+        private void WriteSymbolMeaning()
+        {
+            Range r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "基因体检报告中的符号意义\n";
+            r.Font.Size = 20f;
+            r.Font.Name = FontName;
+            r.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevel2;
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+            wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceDouble;
+
+            float TitleLeftIndent = 7;
+            float ContentLeftIndent = 12;
+            string FuhaoYiyiPath = Environment.CurrentDirectory + "\\fuhaoyiyi.txt";
+            StreamReader sr = new StreamReader(FuhaoYiyiPath);
+            string Content = sr.ReadToEnd();
+            sr.Close();
+
+            string[] LineStrs = Content.Split('\n');
+            foreach (string LineS in LineStrs)
+            {
+                if (LineS.Length < 1)
+                    continue;
+                if (LineS[0] == '$')
+                {
+                    WriteThirdTitle(LineS.Substring(1), true, TitleLeftIndent);
+                }
+                else
+                {
+                    WriteNormalParagraph(LineS.Substring(1), ContentLeftIndent, TitleLeftIndent);
+                    string PicPath = "";
+                    if (LineS[0] == 'R')
+                        PicPath = RedPicPath;
+                    else if (LineS[0] == 'Y')
+                        PicPath = YellowPicPath;
+                    else if (LineS[0] == 'G')
+                        PicPath = GreenPicPath;
+                    else
+                        continue;
+                    r = wordDoc.Paragraphs.Last.Range.Previous();
+                    r.End = r.Start;
+                    AddTightShape(r, PicPath, -21f, 0.25f);
+                }
+            }
+        }
+
+        private void WriteHowTo()
+        {
+            Range r;
+            string HowToPath = Environment.CurrentDirectory + "\\HowTo.txt";
+            StreamReader sr = new StreamReader(HowToPath);
+            string Content = sr.ReadToEnd();
+            sr.Close();
+
+            string[] LineStrs = Content.Split('\n') ;
+            foreach (string LineS in LineStrs)
+            {
+                if (LineS.Length > 0 && LineS[0] == '#')
+                {
+                    r = wordDoc.Paragraphs.Last.Range;
+                    r.InsertBreak();
+                    r.Start = r.Start - 1;
+                    r.Select();
+                    SetNormalParagraphFormat(6, 6);
+                }
+                else if (LineS.Length > 0 && LineS[0] == '$')
+                {
+                    r = wordDoc.Paragraphs.Last.Range;
+                    r.Font.Size = 11.5f;
+                    r.Text = LineS.Substring(1);
+                    r.Select();
+                    wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+                }
+                else
+                    WriteNormalParagraph(LineS, 6, 6);
+            }
+            
         }
 
         private string GetRiskPicPath(string RiskLevel, bool IsDisease = true)
@@ -453,7 +654,6 @@ namespace WriteWord
             WriteOverviewContent(ri.PartInfo[4].ChTitle, ri.chronic_disease_list);
             WriteOverviewContent(ri.PartInfo[5].ChTitle, ri.medicine_list, false);
             WriteOverviewContent(ri.PartInfo[6].ChTitle, ri.nutrition_list, false);
-            object bs = WdBreakType.wdSectionBreakNextPage;
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
         }
 
@@ -525,26 +725,27 @@ namespace WriteWord
             return t;
         }
 
-        private string CalcFreq2(string Freq)
+        private string CalcFreq(string GeneType, string Freq)
         {
             Freq = Freq.Trim();
             if (Freq != "")
             {
-                Freq += "000000";
-
-                if (Freq[0] == '1')
-                    Freq = "100.0%";
-                else
-                    Freq = Freq.Substring(2, 2) + "." + Freq.Substring(4, 2) + "%";
-                Freq = Freq.TrimStart('0');
-                if (Freq[0] == '.')
-                    Freq = "0" + Freq;
+                float FFreq = 0;
+                try
+                {
+                    FFreq = float.Parse(Freq) * 100;
+                }
+                catch
+                {
+                    Console.WriteLine(Freq);
+                    FFreq = float.Parse(Freq);
+                }
+                Freq = String.Format("{0:F}%", FFreq);
             }
-            
             return Freq;
         }
 
-        public string CalcFreq(string GeneType, string Freq)
+        public string CalcFreq2(string GeneType, string Freq)
         {
             Freq = Freq.Trim();
             if (Freq != "")
@@ -565,17 +766,26 @@ namespace WriteWord
             return Freq;
         }
 
-        private void WriteNormalParagraph(string Content, float LeftIndent = 0)
+        private void SetNormalParagraphFormat(float LeftIndent = 0, float RightIndent = 0)
         {
-            Range r = wordDoc.Paragraphs.Last.Range;
-            r.Text = Content.Replace("<br>", "\n").Trim('\n') + "\n";
-            r.Font.Size = 9.6f;
-            r.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
             wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
             wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevelBodyText;
             wordApp.Selection.ParagraphFormat.LineSpacing = 19.2f;
             if (LeftIndent > 0)
                 wordApp.Selection.ParagraphFormat.CharacterUnitLeftIndent = LeftIndent;
+            if (RightIndent > 0)
+                wordApp.Selection.ParagraphFormat.CharacterUnitRightIndent = RightIndent;
+        }
+
+        private void WriteNormalParagraph(string Content, float LeftIndent = 0, float RightIndent = 0)
+        {
+            Range r = wordDoc.Paragraphs.Last.Range;
+            r.Text = Content.Replace("<br>", "\n").Trim('\n') + "\n";
+            r.Font.Size = 9.6f;
+            r.Select();
+            SetNormalParagraphFormat(LeftIndent, RightIndent);
         }
 
         private void WriteCancerRiskInfo(ReportTestItem rti)
@@ -718,8 +928,10 @@ namespace WriteWord
             #endregion
 
             r = wordDoc.Paragraphs.Last.Range;
-            object bs = WdBreakType.wdPageBreak;
-            r.InsertBreak(ref bs);
+            r.InsertBreak();
+            r.Start = r.Start - 1;
+            r.Select();
+            SetNormalParagraphFormat();
         }
 
         private void WriteChronicDiseaseRiskInfo(ReportTestItem rti)
@@ -861,6 +1073,12 @@ namespace WriteWord
                 wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
                 wordApp.Selection.ParagraphFormat.LineSpacing = 1f;
             }
+            else
+            {
+                r.Start = r.Start - 1;
+                r.Select();
+                SetNormalParagraphFormat();
+            }
 
         }
 
@@ -981,6 +1199,9 @@ namespace WriteWord
 
             r = wordDoc.Paragraphs.Last.Range;
             r.InsertBreak();
+            r.Start = r.Start - 1;
+            r.Select();
+            SetNormalParagraphFormat();
 
         }
 
@@ -1060,9 +1281,83 @@ namespace WriteWord
 
             r = wordDoc.Paragraphs.Last.Range;
             r.InsertBreak();
-
+            r.Start = r.Start - 1;
+            r.Select();
+            SetNormalParagraphFormat();
         }
 
+        private void WriteDisclaimerOfLiability()
+        {
+            Console.WriteLine("开始写免责说明");
+            string MianZePath = Environment.CurrentDirectory + "\\mianze.txt";
+            StreamReader sr = new StreamReader(MianZePath);
+            Range r = wordDoc.Paragraphs.Last.Range;
+            WriteNormalParagraph(sr.ReadToEnd(), 7, 7);
+            sr.Close();
+        }
+
+        private void WriteCompanyProfile()
+        {
+            Console.WriteLine("开始写公司简介"); 
+            Range r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "北京中科晶云科技有限公司\n";
+            r.Font.Size = 28.8f;
+            r.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceDouble;
+            wordApp.Selection.ParagraphFormat.OutlineLevel = WdOutlineLevel.wdOutlineLevel1;
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 2;
+            wordApp.Selection.ParagraphFormat.LineUnitAfter = 2;
+
+            string GongSiPath = Environment.CurrentDirectory + "\\gongsi.txt";
+            StreamReader sr = new StreamReader(GongSiPath);
+            r = wordDoc.Paragraphs.Last.Range;
+            WriteNormalParagraph(sr.ReadToEnd(), 7, 7);
+            sr.Close();
+        }
+
+        private void WriteBackCover()
+        {
+            Console.WriteLine("开始写封底");
+
+            #region 设置页眉
+            SetHeader();
+            #endregion
+
+            Range r;
+            r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "网址: www.gene.ac  邮箱: gene@gene.ac 电话: 400-810-0102";
+            r.Font.Size = 10f;
+            r.Select();
+            wordApp.Selection.ParagraphFormat.Reset();
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 18;
+            wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+            wordApp.Selection.ParagraphFormat.LineSpacingRule = WdLineSpacing.wdLineSpaceExactly;
+            wordApp.Selection.ParagraphFormat.LineSpacing = 19.2f;
+
+            r.Start = r.End;
+            string BackCoverPicPath = Environment.CurrentDirectory + "\\backcover.png"; ;
+            InlineShape BackCoverInShape = r.InlineShapes.AddPicture(BackCoverPicPath);
+            BackCoverInShape.Height = wordApp.CentimetersToPoints(10.23f);
+            BackCoverInShape.Width = wordApp.CentimetersToPoints(PageHeight);
+
+
+            Shape OneShape = BackCoverInShape.ConvertToShape();
+            OneShape.WrapFormat.Type = WdWrapType.wdWrapTight;// 紧密型
+            OneShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionRightMarginArea;
+            OneShape.Left = wordApp.CentimetersToPoints(PageRightMargin - PageHeight);
+            OneShape.RelativeVerticalPosition = WdRelativeVerticalPosition.wdRelativeVerticalPositionPage;
+            OneShape.Top = wordApp.CentimetersToPoints(8.86f);
+
+            wordDoc.Content.InsertAfter("\n");
+            r = wordDoc.Paragraphs.Last.Range;
+            r.Text = "地址: 北京市海淀区科学院南路6号";
+            r.Select();
+            wordApp.Selection.ParagraphFormat.LineUnitBefore = 0;
+            wordApp.Selection.ParagraphFormat.SpaceBefore = 0f;
+
+        }
 
         private void ReplacePMToM()
         {
@@ -1136,29 +1431,51 @@ namespace WriteWord
         public void WriteReport(ReportInfo ri)
         {
             Console.WriteLine("开始写" + ri.survey_result.name + "的报告");
-            //WriteSpeech(ri.survey_result.name);
 
-            //WriteContents(ri);
+            #region 插入 封面
+            WriteCover(ri.survey_result.name, ri.survey_result.report_no);
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
 
-            //WritePartTitle(ri.PartInfo[0], false);
-            //WriteHealthSurvey(ri.survey_result);
+            #region 插入 致辞
+            WriteSpeech(ri.survey_result.name);
+            #endregion
 
-            object bs = WdBreakType.wdSectionBreakNextPage;
-            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #region 插入 目录
+            WriteContents(ri);
+            #endregion
 
-            //WriteGeneticTestOverview(ri);
+            #region 插入 PART01 阅读指南
+            WritePartTitle(ri.PartInfo[0], false);
+            WriteHealthSurvey(ri.survey_result);
+            WriteSymbolMeaning();
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
 
+            #region 插入 PART02 如何理解基因检测和风险
+            WritePartTitle(ri.PartInfo[1]);
+            WriteHowTo();
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART03 您的基因检测概况
+            WriteGeneticTestOverview(ri);
+            #endregion
+
+            #region 插入 PART04 肿瘤风险详解
             WritePartTitle(ri.PartInfo[3]);
             for (int i = 0; i < ri.tomour_list.Count; i++)
             {
                 if (ri.tomour_list[i].risk_level == "2" || ri.tomour_list[i].risk_level == "1")
                 {
                     ReportTestItem rti = ri.tomour_list[i];
-                    WriteCancerRiskInfo(rti);
-                    //break;
+                    WriteCancerRiskInfo(rti);;
                 }
             }
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART05 慢病风险管理
             WritePartTitle(ri.PartInfo[4]);
             for (int i = 0; i < ri.chronic_disease_list.Count; i++)
             {
@@ -1166,26 +1483,32 @@ namespace WriteWord
                 {
                     ReportTestItem rti = ri.chronic_disease_list[i];
                     WriteChronicDiseaseRiskInfo(rti);
-                    //break;
                 }
             }
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART06 药物治疗与副作用详解
             WritePartTitle(ri.PartInfo[5]);
             for (int i = 0; i < ri.medicine_list.Count; i++)
             {
                 ReportTestMedicine rtm = ri.medicine_list[i];
                 WriteCurativeSide(rtm);
-                //break;
             }
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART07 营养物质吸收代谢详解
             WritePartTitle(ri.PartInfo[6]);
             for (int i = 0; i < ri.nutrition_list.Count; i++)
             {
                 ReportTestItem rti = ri.nutrition_list[i];
                 WriteNutritionInfo(rti);
-                //break;
             }
             wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART08 附录
             WritePartTitle(ri.PartInfo[7]);
             for (int i = 0; i < ri.tomour_list.Count; i++)
             {
@@ -1193,7 +1516,6 @@ namespace WriteWord
                 {
                     ReportTestItem rti = ri.tomour_list[i];
                     WriteCancerRiskInfo(rti);
-                    //break;
                 }
             }
             for (int i = 0; i < ri.chronic_disease_list.Count; i++)
@@ -1202,9 +1524,147 @@ namespace WriteWord
                 {
                     ReportTestItem rti = ri.chronic_disease_list[i];
                     WriteChronicDiseaseRiskInfo(rti);
-                    //break;
                 }
             }
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART09 免责说明
+            WritePartTitle(ri.PartInfo[8], true, 3);
+            WriteDisclaimerOfLiability();
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART 公司简介
+            WritePartTitle(ri.PartInfo[9], false);
+            WriteCompanyProfile();
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 封底
+            WriteBackCover();
+            #endregion
+
+            ReplacePMToM();
+        }
+
+        public void TestWriteReport(ReportInfo ri)
+        {
+            Console.WriteLine("开始写" + ri.survey_result.name + "的报告");
+
+            #region 插入 封面
+            WriteCover(ri.survey_result.name, ri.survey_result.report_no);
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 致辞
+            WriteSpeech(ri.survey_result.name);
+            #endregion
+
+            #region 插入 目录
+            WriteContents(ri);
+            #endregion
+
+            #region 插入 PART01 阅读指南
+            WritePartTitle(ri.PartInfo[0], false);
+            WriteHealthSurvey(ri.survey_result);
+            WriteSymbolMeaning();
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            //#region 插入 PART02 如何理解基因检测和风险
+            //WritePartTitle(ri.PartInfo[1]);
+            //WriteHowTo();
+            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            //#endregion
+
+            //#region 插入 PART03 您的基因检测概况
+            //WriteGeneticTestOverview(ri);
+            //#endregion
+
+            //#region 插入 PART04 肿瘤风险详解
+            //WritePartTitle(ri.PartInfo[3]);
+            //for (int i = 0; i < ri.tomour_list.Count; i++)
+            //{
+            //    if (ri.tomour_list[i].risk_level == "2" || ri.tomour_list[i].risk_level == "1")
+            //    {
+            //        ReportTestItem rti = ri.tomour_list[i];
+            //        WriteCancerRiskInfo(rti); ;
+            //    }
+            //}
+            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            //#endregion
+
+            //#region 插入 PART05 慢病风险管理
+            //WritePartTitle(ri.PartInfo[4]);
+            //for (int i = 0; i < ri.chronic_disease_list.Count; i++)
+            //{
+            //    if (ri.chronic_disease_list[i].risk_level == "2" || ri.chronic_disease_list[i].risk_level == "1")
+            //    {
+            //        ReportTestItem rti = ri.chronic_disease_list[i];
+            //        WriteChronicDiseaseRiskInfo(rti);
+            //    }
+            //}
+            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            //#endregion
+
+            //#region 插入 PART06 药物治疗与副作用详解
+            //WritePartTitle(ri.PartInfo[5]);
+            //for (int i = 0; i < ri.medicine_list.Count; i++)
+            //{
+            //    ReportTestMedicine rtm = ri.medicine_list[i];
+            //    WriteCurativeSide(rtm);
+            //}
+            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            //#endregion
+
+            //#region 插入 PART07 营养物质吸收代谢详解
+            //WritePartTitle(ri.PartInfo[6]);
+            //for (int i = 0; i < ri.nutrition_list.Count; i++)
+            //{
+            //    ReportTestItem rti = ri.nutrition_list[i];
+            //    WriteNutritionInfo(rti);
+            //}
+            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            //#endregion
+
+            //#region 插入 PART08 附录
+            //WritePartTitle(ri.PartInfo[7]);
+            //for (int i = 0; i < ri.tomour_list.Count; i++)
+            //{
+            //    if (ri.tomour_list[i].risk_level == "0")
+            //    {
+            //        ReportTestItem rti = ri.tomour_list[i];
+            //        WriteCancerRiskInfo(rti);
+            //    }
+            //}
+            //for (int i = 0; i < ri.chronic_disease_list.Count; i++)
+            //{
+            //    if (ri.chronic_disease_list[i].risk_level == "0")
+            //    {
+            //        ReportTestItem rti = ri.chronic_disease_list[i];
+            //        WriteChronicDiseaseRiskInfo(rti);
+            //    }
+            //}
+            //wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            //#endregion
+
+            #region 插入 PART09 免责说明
+            WritePartTitle(ri.PartInfo[8], true, 3);
+            WriteDisclaimerOfLiability();
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 PART 公司简介
+            WritePartTitle(ri.PartInfo[9], false);
+            WriteCompanyProfile();
+            wordDoc.Paragraphs.Last.Range.InsertBreak(ref bs);
+            #endregion
+
+            #region 插入 封底
+            WriteBackCover();
+            #endregion
+
             ReplacePMToM();
         }
 

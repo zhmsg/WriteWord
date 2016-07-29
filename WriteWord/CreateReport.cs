@@ -15,6 +15,7 @@ namespace WriteWord
         public CreateReport()
         {
             InitializeComponent();
+            lab_SaveDIr.Text = Environment.CurrentDirectory;
         }
     }
 }

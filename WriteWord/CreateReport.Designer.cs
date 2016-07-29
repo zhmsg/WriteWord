@@ -31,6 +31,9 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CreateReport));
             this.lab_TaskId = new System.Windows.Forms.Label();
             this.tb_TaskId = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.btn = new System.Windows.Forms.Button();
+            this.lab_SaveDIr = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lab_TaskId
@@ -52,11 +55,42 @@
             this.tb_TaskId.Size = new System.Drawing.Size(187, 29);
             this.tb_TaskId.TabIndex = 1;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label1.Location = new System.Drawing.Point(66, 72);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(123, 19);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "文件保存目录";
+            // 
+            // btn
+            // 
+            this.btn.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btn.Location = new System.Drawing.Point(208, 64);
+            this.btn.Name = "btn";
+            this.btn.Size = new System.Drawing.Size(95, 34);
+            this.btn.TabIndex = 3;
+            this.btn.Text = "浏览";
+            this.btn.UseVisualStyleBackColor = true;
+            // 
+            // lab_SaveDIr
+            // 
+            this.lab_SaveDIr.AutoSize = true;
+            this.lab_SaveDIr.Location = new System.Drawing.Point(70, 110);
+            this.lab_SaveDIr.Name = "lab_SaveDIr";
+            this.lab_SaveDIr.Size = new System.Drawing.Size(0, 12);
+            this.lab_SaveDIr.TabIndex = 4;
+            // 
             // CreateReport
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(450, 256);
+            this.Controls.Add(this.lab_SaveDIr);
+            this.Controls.Add(this.btn);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.tb_TaskId);
             this.Controls.Add(this.lab_TaskId);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -72,6 +106,9 @@
 
         private System.Windows.Forms.Label lab_TaskId;
         private System.Windows.Forms.TextBox tb_TaskId;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button btn;
+        private System.Windows.Forms.Label lab_SaveDIr;
     }
 }
 
