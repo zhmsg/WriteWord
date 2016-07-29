@@ -9,3 +9,4 @@ G:\WriteWord\WriteWord\bin\Debug\WriteWord.exe
 G:\WriteWord\WriteWord\bin\Debug\WriteWord.pdb
 G:\WriteWord\WriteWord\obj\Debug\WriteWord.exe
 G:\WriteWord\WriteWord\obj\Debug\WriteWord.pdb
+G:\WriteWord\WriteWord\obj\Debug\WriteWord.ReportProcess.resources
