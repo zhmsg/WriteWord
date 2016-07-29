@@ -31,11 +31,13 @@
             this.pb_Export = new System.Windows.Forms.ProgressBar();
             this.btn_StartExport = new System.Windows.Forms.Button();
             this.lab_info = new System.Windows.Forms.Label();
+            this.bw_Export = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // pb_Export
             // 
             this.pb_Export.Location = new System.Drawing.Point(0, 1);
+            this.pb_Export.Maximum = 1000;
             this.pb_Export.Name = "pb_Export";
             this.pb_Export.Size = new System.Drawing.Size(557, 23);
             this.pb_Export.TabIndex = 0;
@@ -61,6 +63,11 @@
             this.lab_info.TabIndex = 12;
             this.lab_info.Text = "lab";
             // 
+            // bw_Export
+            // 
+            this.bw_Export.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bw_Export_DoWork);
+            this.bw_Export.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.bw_Export_ProgressChanged);
+            // 
             // ReportProcess
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -82,5 +89,6 @@
         private System.Windows.Forms.ProgressBar pb_Export;
         private System.Windows.Forms.Button btn_StartExport;
         private System.Windows.Forms.Label lab_info;
+        private System.ComponentModel.BackgroundWorker bw_Export;
     }
 }

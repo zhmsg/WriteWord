@@ -14,9 +14,7 @@ namespace WriteWord
         _Document wordDoc;
         Object Nothing;
         string FontName = "造字工房悦黑体验版常规体";
-        string GreenPicPath;
-        string RedPicPath;
-        string YellowPicPath;
+        ReportResourcesRequired Resources;
         float RiskPicWidth = 1.6f;
         float RiskPicHeight = 0.4f;
         float PageHeight = 26f;
@@ -37,9 +35,8 @@ namespace WriteWord
             wordDoc.PageSetup.LeftMargin = wordApp.CentimetersToPoints(PageLeftMargin);
             wordDoc.PageSetup.RightMargin = wordApp.CentimetersToPoints(PageRightMargin);
             wordDoc.PageSetup.HeaderDistance = wordApp.CentimetersToPoints(0.72f);
-            YellowPicPath = Environment.CurrentDirectory + "\\yellow.png";
-            RedPicPath = Environment.CurrentDirectory + "\\red.png";
-            GreenPicPath = Environment.CurrentDirectory + "\\green.png";
+
+            Resources = new ReportResourcesRequired();
         }
 
         private void SetHeader(ReportPartInfo PI = null)
@@ -73,8 +70,7 @@ namespace WriteWord
                 r.Font.Name = "Agency FB";
                 r.Start = r.End;
 
-                string HeaderPicPath = Environment.CurrentDirectory + "\\header.png";
-                r.InlineShapes.AddPicture(HeaderPicPath);
+                r.InlineShapes.AddPicture(Resources.HeaderPicPath);
             }
             wordApp.ActiveWindow.ActivePane.View.SeekView = WdSeekView.wdSeekMainDocument;//退出页眉设置
             
@@ -98,9 +94,8 @@ namespace WriteWord
             wordApp.Selection.ParagraphFormat.LineSpacing = 19.2f;
 
             r.Start = r.End;
-            string LogoPicPath = Environment.CurrentDirectory + "\\logo.png";
             float LogoPicWidth = 3.15f;
-            InlineShape LogoInShape = r.InlineShapes.AddPicture(LogoPicPath);
+            InlineShape LogoInShape = r.InlineShapes.AddPicture(Resources.LogoPicPath);
             LogoInShape.Height = wordApp.CentimetersToPoints(1.96f);
             LogoInShape.Width = wordApp.CentimetersToPoints(LogoPicWidth);
 
@@ -128,8 +123,7 @@ namespace WriteWord
             wordApp.Selection.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
 
             r.Start = r.End;
-            string CoverPicPath = Environment.CurrentDirectory + "\\cover.png"; ;
-            InlineShape BackCoverInShape = r.InlineShapes.AddPicture(CoverPicPath);
+            InlineShape BackCoverInShape = r.InlineShapes.AddPicture(Resources.CoverPicPath);
             BackCoverInShape.Height = wordApp.CentimetersToPoints(10.23f);
             BackCoverInShape.Width = wordApp.CentimetersToPoints(PageHeight);
 
@@ -164,8 +158,7 @@ namespace WriteWord
             #region 插入左边图片
             wordDoc.Paragraphs.Last.Range.Select();
             wordApp.Selection.ParagraphFormat.Reset();
-            string SpeechPicPath = Environment.CurrentDirectory + "\\speech.jpg";
-            InlineShape InShapeSpeech = wordDoc.Paragraphs.Last.Range.InlineShapes.AddPicture(SpeechPicPath); 
+            InlineShape InShapeSpeech = wordDoc.Paragraphs.Last.Range.InlineShapes.AddPicture(Resources.SpeechPicPath); 
             Shape ShapeSpeech = InShapeSpeech.ConvertToShape();
             ShapeSpeech.WrapFormat.Side = WdWrapSideType.wdWrapRight; // 设置图片 文字环绕 -> 自动换行 -> 只在右侧
             ShapeSpeech.WrapFormat.Type = WdWrapType.wdWrapTight;// 紧密型
@@ -191,8 +184,7 @@ namespace WriteWord
             r.Font.Size = 12f;
             r.Select();
 
-            string ZhiCiPath = Environment.CurrentDirectory + "\\zhici.txt";
-            StreamReader sr = new StreamReader(ZhiCiPath);
+            StreamReader sr = new StreamReader(Resources.ZhiCiPath);
             r = wordDoc.Paragraphs.Last.Range;
             r.Text = sr.ReadToEnd();
             sr.Close();
@@ -389,8 +381,7 @@ namespace WriteWord
 
             float TitleLeftIndent = 7;
             float ContentLeftIndent = 12;
-            string FuhaoYiyiPath = Environment.CurrentDirectory + "\\fuhaoyiyi.txt";
-            StreamReader sr = new StreamReader(FuhaoYiyiPath);
+            StreamReader sr = new StreamReader(Resources.FuhaoYiyiPath);
             string Content = sr.ReadToEnd();
             sr.Close();
 
@@ -408,11 +399,11 @@ namespace WriteWord
                     WriteNormalParagraph(LineS.Substring(1), ContentLeftIndent, TitleLeftIndent);
                     string PicPath = "";
                     if (LineS[0] == 'R')
-                        PicPath = RedPicPath;
+                        PicPath = Resources.RedPicPath;
                     else if (LineS[0] == 'Y')
-                        PicPath = YellowPicPath;
+                        PicPath = Resources.YellowPicPath;
                     else if (LineS[0] == 'G')
-                        PicPath = GreenPicPath;
+                        PicPath = Resources.GreenPicPath;
                     else
                         continue;
                     r = wordDoc.Paragraphs.Last.Range.Previous();
@@ -425,8 +416,7 @@ namespace WriteWord
         private void WriteHowTo()
         {
             Range r;
-            string HowToPath = Environment.CurrentDirectory + "\\HowTo.txt";
-            StreamReader sr = new StreamReader(HowToPath);
+            StreamReader sr = new StreamReader(Resources.HowToPath);
             string Content = sr.ReadToEnd();
             sr.Close();
 
@@ -461,22 +451,22 @@ namespace WriteWord
             if (IsDisease == true)
             {
                 if (RiskLevel == "2")
-                    RiskPicPath = RedPicPath;
+                    RiskPicPath = Resources.RedPicPath;
                 else if (RiskLevel == "1")
-                    RiskPicPath = YellowPicPath;
+                    RiskPicPath = Resources.YellowPicPath;
                 else if (RiskLevel == "0")
-                    RiskPicPath = GreenPicPath;
+                    RiskPicPath = Resources.GreenPicPath;
                 else
-                    RiskPicPath = GreenPicPath;
+                    RiskPicPath = Resources.GreenPicPath;
             }
             else
             {
                 if (RiskLevel == "0")
-                    RiskPicPath = RedPicPath;
+                    RiskPicPath = Resources.RedPicPath;
                 else if (RiskLevel == "1")
-                    RiskPicPath = GreenPicPath;
+                    RiskPicPath = Resources.GreenPicPath;
                 else
-                    RiskPicPath = GreenPicPath;
+                    RiskPicPath = Resources.GreenPicPath;
             }
             return RiskPicPath;
         }
@@ -839,18 +829,18 @@ namespace WriteWord
 
                 if (VariantRiskLev == "2")
                 {
-                    VariantRiskPicPath = RedPicPath;
+                    VariantRiskPicPath = Resources.RedPicPath;
                     if (rti.patient_sample_variant[i][3] != "" && rti.patient_sample_variant[i][3] != "无")
                         VariantRead += rti.patient_sample_variant[i][3] + "\n";
                 }
                 else if (VariantRiskLev == "1")
                 {
-                    VariantRiskPicPath = YellowPicPath;
+                    VariantRiskPicPath = Resources.YellowPicPath;
                     if (rti.patient_sample_variant[i][3] != "" && rti.patient_sample_variant[i][3] != "无")
                         VariantRead += rti.patient_sample_variant[i][3] + "\n";
                 }
                 else if (VariantRiskLev == "0")
-                    VariantRiskPicPath = GreenPicPath;
+                    VariantRiskPicPath = Resources.GreenPicPath;
                 else
                     Console.WriteLine(VariantRiskLev);
                 r = t.Cell(i + 2, 5).Range;
@@ -903,10 +893,10 @@ namespace WriteWord
                     string TipLevel = rti.medication_tips[i][1];
                     if (TipLevel == "0")
                     {
-                        TipRiskPicPath = RedPicPath;
+                        TipRiskPicPath = Resources.RedPicPath;
                     }
                     else if (TipLevel == "1")
-                        TipRiskPicPath = GreenPicPath;
+                        TipRiskPicPath = Resources.GreenPicPath;
                     else
                     {
                         Console.WriteLine(rti.disease_name + " " + rti.medication_tips[i][0] + " [" + VariantRiskLev + "]");
@@ -985,18 +975,18 @@ namespace WriteWord
 
                 if (VariantRiskLev == "2")
                 {
-                    VariantRiskPicPath = RedPicPath;
+                    VariantRiskPicPath = Resources.RedPicPath;
                     if (rti.patient_sample_variant[i][3] != "" && rti.patient_sample_variant[i][3] != "无")
                         VariantRead += rti.patient_sample_variant[i][3] + "\n";
                 }
                 else if (VariantRiskLev == "1")
                 {
-                    VariantRiskPicPath = YellowPicPath;
+                    VariantRiskPicPath = Resources.YellowPicPath;
                     if (rti.patient_sample_variant[i][3] != "" && rti.patient_sample_variant[i][3] != "无")
                         VariantRead += rti.patient_sample_variant[i][3] + "\n";
                 }
                 else if (VariantRiskLev == "0")
-                    VariantRiskPicPath = GreenPicPath;
+                    VariantRiskPicPath = Resources.GreenPicPath;
                 else
                     Console.WriteLine(VariantRiskLev);
                 r = t.Cell(i + 2, 5).Range;
@@ -1044,10 +1034,10 @@ namespace WriteWord
                     string TipLevel = rti.medication_tips[i][1];
                     if (TipLevel == "0")
                     {
-                        TipRiskPicPath = RedPicPath;
+                        TipRiskPicPath = Resources.RedPicPath;
                     }
                     else if (TipLevel == "1")
-                        TipRiskPicPath = GreenPicPath;
+                        TipRiskPicPath = Resources.GreenPicPath;
                     else
                     {
                         Console.WriteLine(rti.disease_name + " " + rti.medication_tips[i][0] + " [" + VariantRiskLev + "]");
@@ -1122,12 +1112,12 @@ namespace WriteWord
                     GeneRiskLev = rtm.patient_sample_variant[0][i][4];
                     if (GeneRiskLev == "0")
                     {
-                        GeneRiskPicPath = RedPicPath;
+                        GeneRiskPicPath = Resources.RedPicPath;
                         if (rtm.patient_sample_variant[0][i][3] != "" && rtm.patient_sample_variant[0][i][3] != "无")
                             GeneRead += rtm.patient_sample_variant[0][i][3] + "\n";
                     }
                     else if (GeneRiskLev == "1")
-                        GeneRiskPicPath = GreenPicPath;
+                        GeneRiskPicPath = Resources.GreenPicPath;
                     else
                         return;
                     r = T_Valid.Cell(i + 2, 4).Range;
@@ -1169,12 +1159,12 @@ namespace WriteWord
                     string OneGeneRead = PoisonList[i][3];
                     if (GeneRiskLev == "0")
                     {
-                        GeneRiskPicPath = RedPicPath;
+                        GeneRiskPicPath = Resources.RedPicPath;
                         if (OneGeneRead != "" && OneGeneRead != "无")
                             GeneRead += OneGeneRead + "\n";
                     }
                     else if (GeneRiskLev == "1")
-                        GeneRiskPicPath = GreenPicPath;
+                        GeneRiskPicPath = Resources.GreenPicPath;
                     else
                         return;
                     r = T_Poison.Cell(i + 2, 4).Range;
@@ -1250,12 +1240,12 @@ namespace WriteWord
                     string OneGeneRead = VariantList[i][3];
                     if (GeneRiskLev == "0")
                     {
-                        GeneRiskPicPath = RedPicPath;
+                        GeneRiskPicPath = Resources.RedPicPath;
                         if (OneGeneRead != "" && OneGeneRead != "无")
                             GeneRead += OneGeneRead + "\n";
                     }
                     else if (GeneRiskLev == "1")
-                        GeneRiskPicPath = GreenPicPath;
+                        GeneRiskPicPath = Resources.GreenPicPath;
                     else
                         return;
                     r = T_Poison.Cell(i + 2, 4).Range;
@@ -1289,8 +1279,7 @@ namespace WriteWord
         private void WriteDisclaimerOfLiability()
         {
             Console.WriteLine("开始写免责说明");
-            string MianZePath = Environment.CurrentDirectory + "\\mianze.txt";
-            StreamReader sr = new StreamReader(MianZePath);
+            StreamReader sr = new StreamReader(Resources.MianZePath);
             Range r = wordDoc.Paragraphs.Last.Range;
             WriteNormalParagraph(sr.ReadToEnd(), 7, 7);
             sr.Close();
@@ -1310,8 +1299,7 @@ namespace WriteWord
             wordApp.Selection.ParagraphFormat.LineUnitBefore = 2;
             wordApp.Selection.ParagraphFormat.LineUnitAfter = 2;
 
-            string GongSiPath = Environment.CurrentDirectory + "\\gongsi.txt";
-            StreamReader sr = new StreamReader(GongSiPath);
+            StreamReader sr = new StreamReader(Resources.GongSiPath);
             r = wordDoc.Paragraphs.Last.Range;
             WriteNormalParagraph(sr.ReadToEnd(), 7, 7);
             sr.Close();
@@ -1337,8 +1325,7 @@ namespace WriteWord
             wordApp.Selection.ParagraphFormat.LineSpacing = 19.2f;
 
             r.Start = r.End;
-            string BackCoverPicPath = Environment.CurrentDirectory + "\\backcover.png"; ;
-            InlineShape BackCoverInShape = r.InlineShapes.AddPicture(BackCoverPicPath);
+            InlineShape BackCoverInShape = r.InlineShapes.AddPicture(Resources.BackCoverPicPath);
             BackCoverInShape.Height = wordApp.CentimetersToPoints(10.23f);
             BackCoverInShape.Width = wordApp.CentimetersToPoints(PageHeight);
 

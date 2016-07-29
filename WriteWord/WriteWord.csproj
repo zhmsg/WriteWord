@@ -65,6 +65,7 @@
     <Compile Include="ReportProcess.Designer.cs">
       <DependentUpon>ReportProcess.cs</DependentUpon>
     </Compile>
+    <Compile Include="ReportResourcesRequired.cs" />
     <Compile Include="ReportResult.cs" />
     <Compile Include="ReportSurvey.cs" />
     <Compile Include="ReportTest.cs" />
